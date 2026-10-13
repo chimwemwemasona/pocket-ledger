@@ -36,7 +36,7 @@ export function createApplication(options={}){
   const raw=text(e.text,12000),source=text(e.source,200),sender=text(e.sender||'',200),when=e.occurred;
   if(!Number.isSafeInteger(when)||when<946684800000||when>Date.now()+300000)fail('Invalid transaction time.');
   if(!candidate(raw))fail('This message does not look like a transaction.');
-  const p=parseNotification(raw,sender),id=randomUUID();
+  const p=parseNotification(raw,sender+' '+source),id=randomUUID();
   // Similar captures are flagged, never silently merged: identical transfers can be real.
   const duplicate=db.prepare('SELECT id FROM transactions WHERE user=? AND status<>? AND ((reference IS NOT NULL AND reference=? AND provider=?) OR (raw=? AND ABS(occurred-?)<120000)) LIMIT 1').get(user,'excluded',p.reference,p.provider,raw,when);
   const rule=p.merchant?db.prepare('SELECT category FROM rules WHERE user=? AND merchant=?').get(user,p.merchant.toLowerCase()):null;
