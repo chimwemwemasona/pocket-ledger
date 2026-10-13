@@ -43,3 +43,7 @@ This appeal has **not** been submitted. The app's owner must complete the form o
 A signed Android App Bundle has also been built locally at `android/app/build/outputs/bundle/release/app-release.aab` for future Google Play distribution. AAB files cannot be installed directly on a phone. Google Play internal distribution requires a developer account and appropriate app/tester setup; approval is not guaranteed.
 
 Until installation is resolved, the hosted web dashboard remains usable for pasted transaction messages, notes, budgets, and manual entries. A web app alone cannot capture other apps' Android notifications. Keep Play Protect enabled. Do not rename/repackage the app, remove disclosure, or change signing keys to evade the block.
+
+## Version scope
+
+The appeal text and hash above describe **0.1.0 only**. Version 0.2.0 adds READ_SMS for an optional, disclosed, user-triggered history import. Do not submit the 0.1.0 permission claims or hash for the newer APK. The owner must choose a date range, grant SMS permission, preview local matches, and confirm selected messages before they are queued for sync.

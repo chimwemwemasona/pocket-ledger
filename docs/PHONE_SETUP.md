@@ -14,3 +14,11 @@
 Background delays depend on your Android version and battery settings. If needed, allow background activity for Pocket Ledger in its battery settings. Never grant accessibility or banking credentials; the app does not request them. Revoke a lost phone in the web dashboard.
 
 The Android dashboard requires internet. The native capture/settings screen and encrypted queue work offline. Notes and category edits are saved on the web server when online.
+
+## Optional previous SMS import (0.2.0+)
+
+In the Android capture screen, tap **Import previous transaction SMS**. Read the disclosure, select a date range (30 days, 90 days, one year, or all available history), and allow the separate SMS permission if you want to continue. Review the matched messages and deselect anything unrelated. Tap **Import selected** to encrypt and queue them. Nothing is uploaded before you confirm this selection.
+
+Matching uses your Sender filters (MTN, Airtel, FNB, MoMo by default); add actual sender labels or shortcodes if needed. This reads SMS inbox messages only. RCS chats, MMS, deleted messages and historical banking-app notifications are not available through this import. Each batch is capped at 500 matches, scanning at most 50,000 SMS records. Repeat the import to collect later batches; already-saved history IDs are skipped.
+
+Imported transactions preserve their original dates. In the web dashboard, select that month and open Review. A possible duplicate from an earlier live notification stays flagged for your decision. You can remove SMS permission afterward under Android Settings > Apps > Pocket Ledger > Permissions; notification capture remains separate.

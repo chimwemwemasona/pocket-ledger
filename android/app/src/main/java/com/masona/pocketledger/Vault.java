@@ -10,10 +10,18 @@ final class Vault extends SQLiteOpenHelper {
  String encrypt(String v)throws Exception{Cipher c=Cipher.getInstance("AES/GCM/NoPadding");c.init(Cipher.ENCRYPT_MODE,key());return Base64.encodeToString(c.getIV(),Base64.NO_WRAP)+":"+Base64.encodeToString(c.doFinal(v.getBytes(java.nio.charset.StandardCharsets.UTF_8)),Base64.NO_WRAP);}
  String decrypt(String v)throws Exception{String[] p=v.split(":");Cipher c=Cipher.getInstance("AES/GCM/NoPadding");c.init(Cipher.DECRYPT_MODE,key(),new GCMParameterSpec(128,Base64.decode(p[0],Base64.NO_WRAP)));return new String(c.doFinal(Base64.decode(p[1],Base64.NO_WRAP)),java.nio.charset.StandardCharsets.UTF_8);}
  synchronized void add(JSONObject event)throws Exception{ContentValues v=new ContentValues();v.put("id",event.getString("id"));v.put("payload",encrypt(event.toString()));v.put("created",System.currentTimeMillis());getWritableDatabase().insertWithOnConflict("events",null,v,SQLiteDatabase.CONFLICT_IGNORE);getWritableDatabase().delete("events","state='synced' AND created<?",new String[]{String.valueOf(System.currentTimeMillis()-90L*86400000)});}
- synchronized JSONArray pending()throws Exception{JSONArray a=new JSONArray();try(Cursor c=getReadableDatabase().rawQuery("SELECT payload FROM events WHERE state='pending' ORDER BY created LIMIT 100",null)){while(c.moveToNext())a.put(new JSONObject(decrypt(c.getString(0))));}return a;}
+ synchronized JSONArray pending()throws Exception{JSONArray a=new JSONArray();int bytes=0;try(Cursor c=getReadableDatabase().rawQuery("SELECT payload FROM events WHERE state='pending' ORDER BY created LIMIT 100",null)){while(c.moveToNext()){String payload=decrypt(c.getString(0));int size=payload.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;if(a.length()>0&&bytes+size>400000)break;a.put(new JSONObject(payload));bytes+=size;}}return a;}
+
  synchronized void acknowledge(String id){ContentValues v=new ContentValues();v.put("state","synced");v.putNull("payload");getWritableDatabase().update("events",v,"id=?",new String[]{id});}
  synchronized void rejected(String id){ContentValues v=new ContentValues();v.put("state","rejected");getWritableDatabase().update("events",v,"id=?",new String[]{id});}
  int count(String state){try(Cursor c=getReadableDatabase().rawQuery("SELECT count(*) FROM events WHERE state=?",new String[]{state})){c.moveToFirst();return c.getInt(0);}}
+ synchronized boolean contains(String id){try(Cursor c=getReadableDatabase().rawQuery("SELECT 1 FROM events WHERE id=?",new String[]{id})){return c.moveToFirst();}}
+ synchronized int addHistory(java.util.List<JSONObject> events)throws Exception{
+  SQLiteDatabase db=getWritableDatabase();int added=0;db.beginTransaction();try{
+   for(JSONObject event:events){ContentValues v=new ContentValues();v.put("id",event.getString("id"));v.put("payload",encrypt(event.toString()));v.put("created",System.currentTimeMillis());if(db.insertWithOnConflict("events",null,v,SQLiteDatabase.CONFLICT_IGNORE)!=-1)added++;}
+   db.setTransactionSuccessful();
+  }finally{db.endTransaction();}return added;
+ }
  void storeToken(String t)throws Exception{context.getSharedPreferences("ledger",0).edit().putString("credential",encrypt(t)).apply();}
  String token()throws Exception{String t=context.getSharedPreferences("ledger",0).getString("credential",null);return t==null?null:decrypt(t);}
  void forget(){context.getSharedPreferences("ledger",0).edit().remove("credential").putBoolean("capture",false).apply();}
