@@ -1,0 +1,38 @@
+name: pocket-ledger
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    env_file: /home/chimwemwe/apps/pocket-ledger-runtime/app.env
+    volumes:
+      - /home/chimwemwe/apps/pocket-ledger-runtime/data:/data
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 0.75
+    networks: [private]
+  proxy:
+    image: nginx@sha256:0985e772fb9f729e6fa0980da05fca5d9c468e870eed43071545afa9d2e27d94
+    container_name: pocket-ledger-proxy
+    user: '101:101'
+    group_add: ['1000']
+    restart: unless-stopped
+    command: [nginx, -g, 'daemon off;']
+    depends_on:
+      app: {condition: service_healthy}
+    ports: ['8446:8443']
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /home/chimwemwe/apps/chimwemwe-portfolio-tls:/certs:ro
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 64m
+    networks: [private]
+networks:
+  private:

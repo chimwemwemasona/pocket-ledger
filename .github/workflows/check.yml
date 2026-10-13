@@ -1,0 +1,15 @@
+name: Check Pocket Ledger
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Check server and web source
+        run: docker run --rm -v "$PWD:/app:ro" -w /app node@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 sh -c 'node --check server/index.mjs && node --check web/app.js && npm test'

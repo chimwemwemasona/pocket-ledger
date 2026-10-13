@@ -1,0 +1,11 @@
+.data/
+work/
+node_modules/
+android/.gradle/
+android/local.properties
+android/**/build/
+*.keystore
+*.jks
+.env
+*.sqlite*
+*.apk
